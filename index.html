@@ -322,31 +322,10 @@ function toast(answer){
     setTimeout(function(){ x.className = x.className.replace("show", ""); }, 1000);
 }
 														
-var admobid = {};
-  if( /(android)/i.test(navigator.userAgent) ) { // for android & amazon-fireos
-    admobid = {
-      banner: 'ca-app-pub-9297845572503342/8453074787', // or DFP format "/6253334/dfp_example_ad"
-      interstitial: 'ca-app-pub-9297845572503342/9418672094'
-    };
-  } else if(/(ipod|iphone|ipad)/i.test(navigator.userAgent)) { // for ios
-    admobid = {
-      banner: 'ca-app-pub-xxx/zzz', // or DFP format "/6253334/dfp_example_ad"
-      interstitial: 'ca-app-pub-xxx/kkk'
-    };
-  } else { // for windows phone
-    admobid = {
-      banner: 'ca-app-pub-xxx/zzz', // or DFP format "/6253334/dfp_example_ad"
-      interstitial: 'ca-app-pub-xxx/kkk'
-    };
-  }														
-														
-if(AdMob) AdMob.createBanner({
-  adId: admobid.banner,
-  position: AdMob.AD_POSITION.TOP_CENTER,
-  autoShow: true });													
+											
 
-
-
+admob.initAdmob("ca-app-pub-9297845572503342/8453074787","ca-app-pub-9297845572503342/9418672094");//admob id format ca-app-pub-xxxxxxxxxxxxxxxxxxx/xxxxxxxxx
+admob.showBanner(admob.BannerSize.BANNER,admob.Position.TOP_APP);//show banner at the top of app
 																
 																
 </script>
