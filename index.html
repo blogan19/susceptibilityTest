@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+	<link rel="stylesheet" href="bootstrap.min.css">
+	<script src="Jquery.js"></script>
+	<script src="bootstrap.min.js"></script>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style type="text/css">
+	#snackbar {
+	    visibility: hidden; /* Hidden by default. Visible on click */
+	    min-width: 250px; /* Set a default minimum width */
+	    margin-left: -125px; /* Divide value of min-width by 2 */
+	    background-color: #333; /* Black background color */
+	    color: #fff; /* White text color */
+	    text-align: center; /* Centered text */
+	    border-radius: 2px; /* Rounded borders */
+	    padding: 16px; /* Padding */
+	    position: fixed; /* Sit on top of the screen */
+	    z-index: 1; /* Add a z-index if needed */
+	    left: 50%; /* Center the snackbar */
+	    bottom: 30px; /* 30px from the bottom */
+	}
+	#snackbar.show {
+	    visibility: visible; /* Show the snackbar */
+	    -webkit-animation: fadein 0.5s, fadeout 0.5s 2.5s;
+	    animation: fadein 0.5s, fadeout 0.5s 2.5s;
+	}
+	@-webkit-keyframes fadein {
+	    from {bottom: 0; opacity: 0;} 
+	    to {bottom: 30px; opacity: 1;}
+	}
+
+	@keyframes fadein {
+	    from {bottom: 0; opacity: 0;}
+	    to {bottom: 30px; opacity: 1;}
+	}
+
+	@-webkit-keyframes fadeout {
+	    from {bottom: 30px; opacity: 1;} 
+	    to {bottom: 0; opacity: 0;}
+	}
+
+	@keyframes fadeout {
+	    from {bottom: 30px; opacity: 1;}
+	    to {bottom: 0; opacity: 0;}
+	}
+	.centre{
+		text-align: center;
+	}
+	.qDisp{
+		font-size: 1.5em;
+		padding-top: 20px;
+		padding-bottom: 20px;
+	}
+	.invis{
+		display: none;
+	}
+	.margTop{
+		margin-top: 20px;
+	}
+	.customAlert{
+      background: linear-gradient(to right, #457fca , #5691c8);
+      background-color: #337AB7;
+      color: white;
+    }
+    #scoreDisp{
+    	font-size: 12px;
+    }
+}
+</style>
+
+</head>
+<body>
+<nav class="navbar navbar-default customAlert">
+        <div class="container-fluid">
+          <div class="navbar-header" style="width: 100%; height: 100%;">
+          	<h3>&nbsp; Antibiotic Susceptibility</h3>
+          </div>
+        </div>
+ </nav>
+
+<div class="container margTop">
+	<button data-toggle="collapse" data-target="#instructions" class="btn btn-block btn-info">Instructions</button>
+	<div id="instructions" class="collapse">
+		Select whether you believe the antibiotic covers the pathogen displayed.  Bare in mind that antibiotic sensitivities vary by region and therefore may be different in your locality.  The idea of this quiz is help the user gain a basic understanding of antibiotic coverage and should not be used to inform clinical decisions. Always refer to local policies and sensitivity patterns when selecting antimicrobials. The data used in this app mainly uses product data sheets.<br>
+		Use the three options "sensitive", "intermediate" and "resistant" to submit your answer.
+	</div>
+</div>
+<div class="container margTop">
+	<div class="alert alert-info invis" id="qCountDisp"></div>
+	<div class="alert alert-success invis" id="scoreDisp"></div>
+</div>
+<hr>
+<div class="container">
+	<div class="alert alert-info centre qDisp" id="bacAlert"> </div>
+	<div class="alert alert-info centre qDisp" id="drugAlert"> </div>
+	<hr>
+	<button onclick="test(1)" class="btn btn-block btn-success"> Sensitive</button>
+	<button onclick="test(0)" class="btn btn-block btn-success"> Intermediate</button>
+	<button onclick="test(2)" class="btn btn-block btn-success"> Resistant</button>
+	<div id="snackbar"></div>
+</div>
+
+
+
+<script type="text/javascript">
+var score = 0;
+var questionCount = 0;
+
+var abx = ['Amoxicillin','Benzylpenicilllin','Ceftazidime','Ceftriaxone','Cephalexin','Ciprofloxacin','Clarithromycin','Clindamycin','Coamoxiclav','Doxycycline','Erythromycin','Flucloxacillin','FusidicAcid','Gentamicin','Metronidazole','Meropenem','Nitrofurantoin','Phenoxymethylpenicillin','piperacillinTazobactam','Pivmecillinam','Rifampicin','Teicoplanin','Tigecycline','Cotrimoxazole','Trimethoprim','Vancomycin','Amikacin','Azithromycin','Aztreonam','Chloramphenicol','Colistimethate','Daptomycin','Ertapenem','Fosfomycin','Linezolid','Temocillin'];
+var bac = ['Staphylococcus aureus(MSSA)','Staphylococcus aureus (MRSA)','Staphylococcus epidermidis','Streptococcus pneumoniae','Streptococcus Groups A,B,C,G, & milleri','Enterococcus faecalis','Enterococcus faecium','Listeria monocytogenes','Clostridium (not difficile)','Clostridium difficile','Actinetobacter','Enterobacter','Escheria coli','Klebsiella','Extended-spectrum beta-lactamase producing gram negatives','carbapenemase producing enterobacteriaceae coliforms','Haemophilus influenzae','Moraxella catarrhalis','Neisseria gonorrhoeae','Neisseria meningitidis','Proteus mirabilis','Pseudomonas aeruginosa','Stenotroph. maltophilia','Legionella','Mycoplasma pneumoniae','Chlamydophila'];
+
+
+var AmoxicillinS = ['Streptococcus pneumoniae','Streptococcus Groups A,B,C,G, & milleri','Enterococcus faecalis','Listeria monocytogenes','Clostridium (not difficile)','Escheria coli', 'Neisseria meningitidis'];
+var AmoxicillinI = ['Enterococcus faecium','Escheria coli','Haemophilus influenzae','Neisseria gonorrhoeae','Proteus mirabilis'];
+
+
+var BenzylpenicilllinS =  ['Streptococcus pneumoniae','Streptococcus Groups A,B,C,G, & milleri','Clostridium (not difficile)','Neisseria meningitidis'];
+var BenzylpenicilllinI =  ['Enterococcus faecalis','Listeria monocytogenes'];
+
+var CeftazidimeS = ['Streptococcus pneumoniae','Streptococcus Groups A,B,C,G, & milleri','Clostridium (not difficile)','Escheria coli','Klebsiella','Haemophilus influenzae','Moraxella catarrhalis','Neisseria gonorrhoeae','Neisseria meningitidis','Proteus mirabilis','Pseudomonas aeruginosa','Stenotroph maltophilia'];
+
+var CeftazidimeI = ['Staphylococcus aureus(MSSA)','Staphylococcus epidermidis','Actinetobacter','Enterobacter'];
+
+var CeftriaxoneS = ['Staphylococcus aureus(MSSA)','Streptococcus pneumoniae','Streptococcus Groups A,B,C,D & milleri','Clostridium (not difficile)','Escheria coli','Klebsiella','Haemophilus influenzae','Moraxella catarrhalis','Neisseria gonorrhoeae','Neisseria meningitidis','Proteus mirabilis'];
+var CeftriaxoneI = ['Staphylococcus epidermidis','Actinetobacter','Enterobacter'];
+
+var CephalexinS = ['Staphylococcus aureus(MSSA)','Streptococcus pneumoniae','Streptococcus Groups A,B,C,D & milleri','Escheria Coli','Klebsiella','Proteus mirabilis','Listeria monocytogenes'];
+var CephalexinI = ['Haemophilus influenzae','Actinetobacter', 'Staphylococcus epidermidis'];
+
+var CiprofloxacinS = ['Staphylococcus aureus(MSSA)','Actinetobacter','Enterobacter','Escheria coli','Klebsiella','Extended-spectrum beta-lactamase producing gram negatives','Haemophilus influenzae','Moraxella catarrhalis','Neisseria meningitidis','Proteus mirabilis','Pseudomonas aeruginosa','Legionella','Mycoplasma pneumoniae','Chlamydophila'];
+var CiprofloxacinI = ['Staphylococcus epidermidis','Streptococcus pneumoniae','Streptococcus Groups A,B,C,D & milleri',',Enterobacter faecalis','Listeria monocytogenes','Clostridium (not difficile)','carbapenemase producing enterobacteriaceae coliforms','Neisseria gonorrhoeae'];
+
+var ClarithromycinS =['Staphylococcus aureus(MSSA)','Streptococcus pneumoniae','Streptococcus Groups A,B,C,D & milleri','Haemophilus influenzae','Moraxella catarrhalis','Legionella','Mycoplasma pneumoniae','Chlamydophila'];
+var ClarithromycinI =['Enterococcus faecium','Staphylococcus aureus (MRSA)'];
+
+var ClindamycinS = ['Staphylococcus aureus(MSSA)','Streptococcus pneumoniae','Streptococcus Groups A,B,C,D & milleri','Clostridium (not difficile)'];
+var ClindamycinI = ['Staphylococcus aureus (MRSA)'];
+
+var CoamoxiclavS = ['Staphylococcus aureus(MSSA)','Streptococcus pneumoniae','Streptococcus Groups A,B,C,D & milleri','Enterococcus faecalis','Listeria monocytogenes','Clostridium (not difficile)','Escheria coli','Klebsiella','Haemophilus influenzae','Moraxella catarrhalis','Neisseria meningitidis','Proteus mirabilis'];
+var CoamoxiclavI = ['Staphylococcus epidermidis','Enterococcus faecium','Actinetobacter','Neisseria gonorrhoeae'];
+
+var DoxycyclineS = ['Staphylococcus aureus(MSSA)','Staphylococcus aureus (MRSA)','Streptococcus pneumoniae','Streptococcus Groups A,B,C,D & milleri','Haemophilus influenzae','Moraxella catarrhalis','Legionella','Mycoplasma pneumoniae','Chlamydophila'];
+var DoxycyclineI = ['Staphylococcus epidermidis','Proteus mirabilis'];
+
+var ErythromycinS = ['Staphylococcus aureus(MSSA)','Streptococcus pneumoniae','Streptococcus Groups A,B,C,D & milleri','Legionella','Mycoplasma pneumoniae','Chlamydophila'];
+var ErythromycinI = ['Staphylococcus epidermidis','Haemophilus influenzae','Moraxella catarrhalis'];
+
+var FlucloxacillinS = ['Staphylococcus aureus(MSSA)','Streptococcus pneumoniae','Streptococcus Groups A,B,C,D & milleri'];
+var FlucloxacillinSI = ['Staphylococcus epidermidis'];
+
+var FusidicAcidS = ['Staphylococcus aureus(MSSA)','Staphylococcus aureus (MRSA)','Staphylococcus epidermidis','Streptococcus pneumoniae','Streptococcus Groups A,B,C,D & milleri','Enterococcus faecium'];
+var FusidicAcidI = [];
+
+var GentamicinS = ['Staphylococcus aureus(MSSA)','Staphylococcus aureus (MRSA)','Staphylococcus epidermidis','Actinetobacter','Enterobacter','Escheria coli','Klebsiella','Extended-spectrum beta-lactamase producing gram negatives','Proteus mirabilis','Pseudomonas aeruginosa'];
+var GentamicinI = ['carbapenemase producing enterobacteriaceae coliforms']
+
+
+var MetronidazoleS = ['Clostridium (not difficile)','Clostridium difficile'];
+var MetronidazoleI = [];
+
+var MeropenemS = ['Staphylococcus aureus(MSSA)','Streptococcus pneumoniae','Streptococcus Groups A,B,C,D & milleri','Enterococcus faecalis','Listeria monocytogenes','Clostridium (not difficile)','Actinetobacter','Enterobacter','Escheria coli','Klebsiella','Extended-spectrum beta-lactamase producing gram negatives','Haemophilus influenzae','Moraxella catarrhalis','Neisseria gonorrhoeae','Neisseria meningitidis','Proteus mirabilis','Pseudomonas aeruginosa'];
+var MeropenemI = ['Staphylococcus epidermidis'];
+
+var NitrofurantoinS = ['Staphylococcus aureus(MSSA)','Staphylococcus aureus (MRSA)','Streptococcus Groups A,B,C,D & milleri','Escheria coli'];
+var NitrofurantoinI = ['Enterococcus faecalis','Enterococcus faecium','Enterobacter','Klebsiella','Extended-spectrum beta-lactamase producing gram negatives','carbapenemase producing enterobacteriaceae coliforms'];
+
+var PhenoxymethylpenicillinS = ['Streptococcus pneumoniae','Streptococcus Groups A,B,C,D & milleri','Clostridium (not difficile)'];
+var PhenoxymethylpenicillinI = ['Enterococcus faecalis', 'Enterococcus faecium'];
+
+var piperacillinTazobactamS = ['Staphylococcus aureus(MSSA)','Streptococcus pneumoniae','Streptococcus Groups A,B,C,D & milleri','Enterococcus faecalis','Clostridium (not difficile)','Actinetobacter','Escheria coli','Klebsiella','Haemophilus influenzae','Moraxella catarrhalis','Neisseria meningitidis','Proteus mirabilis','Pseudomonas aeruginosa'];
+var piperacillinTazobactamI = ['Staphylococcus epidermidis','Enterococcus faecium','Enterobacter','Neisseria gonorrhoeae'];
+
+var PivmecillinamS = ['Enterobacter','Escheria coli','Klebsiella','Proteus mirabilis'];
+var PivmecillinamI = ['Extended-spectrum beta-lactamase producing gram negatives','carbapenemase producing enterobacteriaceae coliforms'];
+
+var RifampicinS = ['Staphylococcus aureus(MSSA)','Staphylococcus aureus(MRSA)','Staphylococcus epidermidis','Streptococcus pneumoniae','Streptococcus Groups A,B,C,D & milleri','Listeria monocytogenes','Legionella'];
+var RifampicinI = [];
+
+var TeicoplaninS = ['Staphylococcus aureus(MSSA)','Staphylococcus aureus (MRSA)','Staphylococcus epidermidis','Streptococcus pneumoniae','Streptococcus Groups A,B,C,G, & milleri','Enterococcus faecalis','Enterococcus faecium','Clostridium (not difficile)','Clostridium difficile'];
+var TeicoplaninI = [];
+
+var TigecyclineS = ['Staphylococcus aureus(MSSA)','Staphylococcus aureus (MRSA)','Staphylococcus epidermidis','Streptococcus pneumoniae','Streptococcus Groups A,B,C,G, & milleri','Enterococcus faecalis','Enterococcus faecium','Listeria monocytogenes','Clostridium (not difficile)','Escheria coli','Klebsiella','Extended-spectrum beta-lactamase producing gram negatives','Proteus mirabilis','Legionella','Mycoplasma pneumoniae','Chlamydophila'];
+var TigecyclineI = ['Enterobacter','carbapenemase producing enterobacteriaceae coliforms','Haemophilus influenzae','Moraxella catarrhalis','Stenotroph maltophilia'];
+
+var CotrimoxazoleS = ['Staphylococcus aureus(MSSA)','Staphylococcus aureus (MRSA)','Staphylococcus epidermidis','Streptococcus pneumoniae','Streptococcus Groups A,B,C,G, & milleri','Listeria monocytogenes','Actinetobacter','Enterobacter','Escheria coli','Klebsiella','Haemophilus influenzae','Moraxella catarrhalis','Stenotroph maltophilia'];
+var CotrimoxazoleI = ['Enterococcus faecalis','Enterococcus faecium','Extended-spectrum beta-lactamase producing gram negatives','carbapenemase producing enterobacteriaceae coliforms','Proteus mirabilis'];
+
+var TrimethoprimS = ['Staphylococcus aureus(MSSA)','Staphylococcus aureus (MRSA)','Staphylococcus epidermidis','Streptococcus pneumoniae','Streptococcus Groups A,B,C,G, & milleri','Escheria coli','Klebsiella','Haemophilus influenzae','Moraxella catarrhalis'];
+var TrimethoprimI = ['Actinetobacter','Enterobacter','Extended-spectrum beta-lactamase producing gram negatives','carbapenemase producing enterobacteriaceae coliforms','Proteus mirabilis'];
+
+var VancomycinS = ['Staphylococcus aureus(MSSA)','Staphylococcus aureus (MRSA)','Staphylococcus epidermidis','Streptococcus pneumoniae','Streptococcus Groups A,B,C,G, & milleri','Enterococcus faecalis','Enterococcus faecium','Clostridium (not difficile)','Clostridium difficile'];
+var VancomycinI = [];
+
+var AmikacinS = ['Staphylococcus aureus(MSSA)','Staphylococcus aureus (MRSA)','Staphylococcus epidermidis','Streptococcus pneumoniae','Streptococcus Groups A,B,C,G, & milleri','Enterococcus faecium','Actinetobacter','Escheria coli','Klebsiella','Extended-spectrum beta-lactamase producing gram negatives','carbapenemase producing enterobacteriaceae coliforms','Pseudomonas aeruginosa'];
+var AmikacinI = [];
+
+var AzithromycinS = ['Staphylococcus aureus(MSSA)','Streptococcus pneumoniae','Streptococcus Groups A,B,C,G, & milleri','Enterococcus faecium','Clostridium (not difficile)','Haemophilus influenzae','Moraxella catarrhalis','Neisseria gonorrhoeae','Legionella','Mycoplasma pneumoniae','Chlamydophila'];
+var AzithromycinI = [];
+
+var AztreonamS = ['Actinetobacter','Enterobacter','Escheria coli','Klebsiella','Haemophilus influenzae','Moraxella catarrhalis','Neisseria gonorrhoeae','Neisseria meningitidis','Proteus mirabilis','Pseudomonas aeruginosa'];
+var AztreonamI = [];
+
+var ChloramphenicolS = ['Streptococcus pneumoniae','Streptococcus Groups A,B,C,G, & milleri','Clostridium (not difficile)','Enterobacter','Escheria coli','Klebsiella','Haemophilus influenzae','Moraxella catarrhalis','Neisseria gonorrhoeae','Neisseria meningitidis','Proteus mirabilis'];
+var ChloramphenicolI = ['Staphylococcus aureus(MSSA)','Staphylococcus aureus (MRSA)','Listeria monocytogenes','Extended-spectrum beta-lactamase producing gram negatives','carbapenemase producing enterobacteriaceae coliforms'];
+
+var ColistimethateS = ['Actinetobacter','Escheria coli','Klebsiella','Extended-spectrum beta-lactamase producing gram negatives','carbapenemase producing enterobacteriaceae coliforms','Proteus mirabilis','Pseudomonas aeruginosa'];
+var ColistimethateI = ['Enterobacter','Haemophilus influenzae','Stenotroph maltophilia'];
+
+var DaptomycinS = ['Staphylococcus aureus(MSSA)','Staphylococcus aureus (MRSA)','Staphylococcus epidermidis','Streptococcus pneumoniae','Streptococcus Groups A,B,C,G, & milleri','Enterococcus faecalis','Enterococcus faecium'];
+var DaptomycinI = [];
+
+var ErtapenemS = ['Staphylococcus aureus(MSSA)','Staphylococcus epidermidis','Streptococcus pneumoniae','Streptococcus Groups A,B,C,G, & milleri','Clostridium (not difficile)','Enterobacter','Escheria coli','Klebsiella','Extended-spectrum beta-lactamase producing gram negatives','Haemophilus influenzae','Moraxella catarrhalis','Proteus mirabilis'];
+var ErtapenemI = [];
+
+var FosfomycinS = ['Escheria coli','Klebsiella','Proteus mirabilis'];
+var FosfomycinI = ['Staphylococcus aureus(MSSA)','Staphylococcus aureus (MRSA)','Staphylococcus epidermidis','Enterococcus faecalis','Enterococcus faecium','Enterobacter','Extended-spectrum beta-lactamase producing gram negatives','carbapenemase producing enterobacteriaceae coliforms'];
+
+var LinezolidS = ['Staphylococcus aureus(MSSA)','Staphylococcus aureus (MRSA)','Staphylococcus epidermidis','Streptococcus pneumoniae','Streptococcus Groups A,B,C,G, & milleri','Enterococcus faecalis','Enterococcus faecium','Listeria monocytogenes','Clostridium (not difficile)'];
+var LinezolidI = [];
+
+var TemocillinS = ['Escheria coli','Klebsiella','Extended-spectrum beta-lactamase producing gram negatives','Haemophilus influenzae','Moraxella catarrhalis','Neisseria meningitidis','Proteus mirabilis'];
+var TemocillinI = ['Enterobacter','carbapenemase producing enterobacteriaceae coliforms'];
+
+var bacteria, a , b, ans;
+function generate(){
+	 bacteria = bac[Math.floor(Math.random()*bac.length)];
+	 a = Math.floor(Math.random()*abx.length);
+
+	 b = abx[a];
+	 console.log(b);
+	 var disp = b;
+	 if(b == 'Coamoxiclav'){
+	 	disp = 'Co-amoxiclav';
+	 }
+	if(b == 'FusidicAcid'){
+		disp = 'Fusidic Acid';
+	}
+	if(b == 'piperacillinTazobactam'){
+		disp = 'Piperacillin/Tazobactam';
+	}
+	if(b == 'Cotrimoxazole'){
+		disp = 'Co-Trimoxazole';
+	}
+	 document.getElementById('bacAlert').innerHTML = bacteria;
+	 document.getElementById('drugAlert').innerHTML = disp;
+	 
+	// console.log("question: " + questionCount + " score: " + score);
+
+}
+generate();
+
+function test(no){
+	questionCount++;
+	var sens = eval(b+'S');
+	var inter = eval(b+'I');
+	var comb = sens.concat(inter);
+	var c, feedback;
+	
+	
+	if(no == 1){
+		c = b+'S';
+	}else if(no == 0){
+		c = b+'I';
+	}
+	if(no == 2 && comb.includes(bacteria) == false){
+		
+		ans = "correct";
+		score++;
+	}else if(no == 2 && comb.includes(bacteria) == true){
+		
+		ans = "incorrec";
+	}
+
+	if( no == 0 || no == 1){
+		var d = eval(c);//converts c to obeject reference rather than string d is now antibiotic array
+		var answer = (d.includes(bacteria));
+		if(answer == true){
+		
+			ans = "correct";
+			score++;
+		}else if(answer == false){
+			
+			ans = "incorrect";
+		}
+	}
+
+	var s1 = eval(b+'S');
+	var s2 = eval(b+'I');
+	if(s1.includes(bacteria)){
+		feedback = "Sensitive";
+	}else if(s2.includes(bacteria)){
+		feedback = "Intermediate";
+	}else{
+		feedback = "Resistant"
+	}
+	toast(feedback);
+	var perc = ((score/questionCount)*100).toFixed(0);
+
+	document.getElementById('scoreDisp').style.display = "block";
+	document.getElementById('qCountDisp').style.display = "block";
+	document.getElementById('qCountDisp').innerHTML = "Questions Answered: " + questionCount;
+	document.getElementById('scoreDisp').innerHTML = "Score: " + score + "(" + perc + "%)";
+	generate();
+}
+
+
+function toast(answer){
+    var x = document.getElementById("snackbar");
+    console.log(ans);
+
+    if(ans == "correct"){
+    	x.style.backgroundColor = 'green';
+    }else if( ans == "incorrect"){
+    	x.style.backgroundColor = 'red';
+    }
+
+    x.innerHTML = "Answer: " + answer;
+    x.className = "show";
+    setTimeout(function(){ x.className = x.className.replace("show", ""); }, 1000);
+}
+														
+var admobid = {};
+  if( /(android)/i.test(navigator.userAgent) ) { // for android & amazon-fireos
+    admobid = {
+      banner: 'ca-app-pub-9297845572503342/8453074787', // or DFP format "/6253334/dfp_example_ad"
+      interstitial: 'ca-app-pub-9297845572503342/9418672094'
+    };
+  } else if(/(ipod|iphone|ipad)/i.test(navigator.userAgent)) { // for ios
+    admobid = {
+      banner: 'ca-app-pub-xxx/zzz', // or DFP format "/6253334/dfp_example_ad"
+      interstitial: 'ca-app-pub-xxx/kkk'
+    };
+  } else { // for windows phone
+    admobid = {
+      banner: 'ca-app-pub-xxx/zzz', // or DFP format "/6253334/dfp_example_ad"
+      interstitial: 'ca-app-pub-xxx/kkk'
+    };
+  }														
+														
+if(AdMob) AdMob.createBanner({
+  adId: admobid.banner,
+  position: AdMob.AD_POSITION.TOP_CENTER,
+  autoShow: true });													
+
+
+
+																
+																
+</script>
+</body>
+</html>
